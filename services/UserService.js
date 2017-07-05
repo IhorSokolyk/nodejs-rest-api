@@ -5,9 +5,10 @@ const User = require('../models/UserModel'),
 let defaultErrorMessage = {error: 'Something went wrong'};
 module.exports = {
     get(req, callback){
-        User.findById(req.body.id, '-password -__v', (err, user) => {
-            err && (logger.error(err) && callback(defaultErrorMessage));
+        User.findById(req.body.id, '-password -__v').then((user) => {
             callback(user);
+        }, (err) => {
+            logger.error(err) && callback(defaultErrorMessage);
         });
     },
     save(req, callback) {
@@ -21,20 +22,22 @@ module.exports = {
                 user.password = bcrypt.hashSync(user.password, salt);
                 user.createdAt = new Date();
                 user.updatedAt = new Date();
-                user.save((err, savedUser) => {
-                    err && (logger.error(err) && callback(defaultErrorMessage));
+                user.save().then((savedUser) => {
                     logger.info('Added new user to database -> ' + user.email);
                     savedUser.password = undefined;
                     callback(savedUser);
+                }, (err) => {
+                    logger.error(err) && callback(defaultErrorMessage);
                 });
             }
         });
     },
     getByEmail(req, callback) {
-        User.findOne({'email': req.body.email}, '-password -__v', (err, user) => {
-            err && (logger.error(err) && callback(defaultErrorMessage));
+        User.findOne({'email': req.body.email}, '-password -__v').then((user) => {
             callback(user);
-        })
+        }, (err) => {
+            logger.error(err) && callback(defaultErrorMessage);
+        });
     },
     update(req, callback) {
         if (req.body.password && req.body.password.length < 30) {
@@ -47,8 +50,7 @@ module.exports = {
         });
     },
     login(req, callback) {
-        User.findOne({email: req.body.email}, '-__v', (err, user) => {
-            err && (logger.error(err) && callback(defaultErrorMessage));
+        User.findOne({email: req.body.email}, '-__v').then((user) => {
             if (user) {
                 bcrypt.compare(req.body.password, user.password, (err, isSame) => {
                     if (isSame) {
@@ -61,6 +63,8 @@ module.exports = {
             } else {
                 callback({error: 401, message: 'Not authorized'});
             }
+        }, (err) => {
+            logger.error(err) && callback(defaultErrorMessage);
         });
     }
 };

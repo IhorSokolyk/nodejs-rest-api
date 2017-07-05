@@ -14,6 +14,7 @@ app.use('/user', userRouter);
 
 app.listen(8080);
 
-mongoose.connect('mongodb://localhost:27017/portfolio');
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://localhost:27017/portfolio', {useMongoClient: true});
 
 
