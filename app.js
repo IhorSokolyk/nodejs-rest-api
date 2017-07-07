@@ -4,17 +4,23 @@ const express = require('express'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
     logger = require('./utils/logger'),
-    userRouter = require('./routers/UserRouter');
+    morgan = require('morgan'),
+    userRouter = require('./routers/UserRouter'),
+    config = require('./config');
+let User = require('./models/User');
 
+app.set('superSecret', config.secret);
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+// use morgan to log requests to the console
+app.use(morgan('dev'));
 
 app.use('/user', userRouter);
 
 app.listen(8080);
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/portfolio', {useMongoClient: true});
+mongoose.connect(config.database, {useMongoClient: true});
 
 

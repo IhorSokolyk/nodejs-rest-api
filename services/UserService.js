@@ -1,6 +1,8 @@
-const User = require('../models/UserModel'),
+const User = require('../models/User'),
     logger = require('../utils/logger'),
-    bcrypt = require('bcryptjs');
+    bcrypt = require('bcryptjs'),
+    jwt = require('jsonwebtoken'),
+    config = require('../config');
 
 let defaultErrorMessage = {error: 'Something went wrong'};
 module.exports = {
@@ -49,18 +51,21 @@ module.exports = {
             callback(user);
         });
     },
-    login(req, callback) {
+    login(req, res, callback) {
         User.findOne({email: req.body.email}, '-__v').then((user) => {
             if (user) {
                 bcrypt.compare(req.body.password, user.password, (err, isSame) => {
                     if (isSame) {
                         user.password = undefined;
-                        callback(user);
+                        var token = jwt.sign(user, config.secret);
+                        callback({userId: user._id, token: token});
                     } else {
+                        res.status(401);
                         callback({error: 401, message: 'Not authorized'});
                     }
                 });
             } else {
+                res.status(401);
                 callback({error: 401, message: 'Not authorized'});
             }
         }, (err) => {
