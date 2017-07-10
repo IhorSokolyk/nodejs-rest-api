@@ -57,7 +57,7 @@ module.exports = {
                 bcrypt.compare(req.body.password, user.password, (err, isSame) => {
                     if (isSame) {
                         user.password = undefined;
-                        var token = jwt.sign(user, config.secret);
+                        let token = jwt.sign({email: user.email, id: user._id}, config.secret);
                         callback({userId: user._id, token: token});
                     } else {
                         res.status(401);

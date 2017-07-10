@@ -17,7 +17,7 @@ router.post('/login', (req, res) => {
 
 //Token validation middleware
 router.use(function(req, res, next) {
-    var token = req.headers['authorization'];
+    let token = req.headers['authorization'];
     if (token) {
         jwt.verify(token, config.secret, function(err, decoded) {
             if (err) {
@@ -37,9 +37,17 @@ router.use(function(req, res, next) {
 });
 
 router.post('/get', (req, res) => {
-    UserService.get(req, (user) => {
-        res.json(user);
-    })
+    if (req.decoded.id !== req.body.id) {
+        res.status(401).send({
+            error: true,
+            message: 'This token doesn\'t belong to current user'
+        })
+    } else {
+        UserService.get(req, (user) => {
+            res.json(user);
+        });
+    }
+
 });
 
 module.exports = router;
