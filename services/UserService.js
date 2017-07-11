@@ -4,72 +4,70 @@ const User = require('../models/User'),
     jwt = require('jsonwebtoken'),
     config = require('../config');
 
-let defaultErrorMessage = {error: 'Something went wrong'};
+let defaultErrorMessage = {error: 'Something went wrong. Try again later.'};
 module.exports = {
-    get(req, callback){
-        User.findById(req.body.id, '-password -__v').then((user) => {
-            callback(user);
+    get(req, res, done){
+        User.findById(req.params.id, '-password -__v').then((user) => {
+            if (user) {
+                done(null, user);
+            } else {
+                res.status(404);
+                done({error: 'User not found'}, null);
+            }
         }, (err) => {
-            logger.error(err) && callback(defaultErrorMessage);
+            logger.error(err) && done(defaultErrorMessage, null);
         });
     },
-    save(req, callback) {
-        this.getByEmail(req, (dbUser) => {
+    save(req, res, done) {
+        this.getByEmail(req, (err, dbUser) => {
             if (dbUser && dbUser._id) {
                 logger.error('User with email: ' + req.body.email + ' already exists');
-                callback({status: 202, message: 'User already exists'});
+                res.status(202);
+                done({status: 'Failed', message: 'User already exists'}, null);
             } else {
                 let user = new User(req.body);
                 let salt = bcrypt.genSaltSync(10);
                 user.password = bcrypt.hashSync(user.password, salt);
-                user.createdAt = new Date();
-                user.updatedAt = new Date();
                 user.save().then((savedUser) => {
                     logger.info('Added new user to database -> ' + user.email);
                     savedUser.password = undefined;
-                    callback(savedUser);
+                    done(null, savedUser);
                 }, (err) => {
-                    logger.error(err) && callback(defaultErrorMessage);
+                    logger.error(err) && done(defaultErrorMessage, null);
                 });
             }
         });
     },
-    getByEmail(req, callback) {
+    getByEmail(req, done) {
         User.findOne({'email': req.body.email}, '-password -__v').then((user) => {
-            callback(user);
+            if (user) {
+                done(null, user);
+            } else {
+                done({error: 'User not found'}, null);
+            }
         }, (err) => {
-            logger.error(err) && callback(defaultErrorMessage);
+            logger.error(err) && done(defaultErrorMessage, null);
         });
     },
-    update(req, callback) {
-        if (req.body.password && req.body.password.length < 30) {
-            let salt = bcrypt.genSaltSync(10);
-            req.body.Password = bcrypt.hashSync(req.body.Password, salt);
-        }
-        User.update({'_id': req.body._id}, {$set: req.body}, (err, user) => {
-            err && (logger.error(err) && callback(defaultErrorMessage));
-            callback(user);
-        });
-    },
-    login(req, res, callback) {
-        User.findOne({email: req.body.email}, '-__v').then((user) => {
+    login(req, res, done) {
+        User.findOne({email: req.body.email}, 'password email _id').then((user) => {
             if (user) {
                 bcrypt.compare(req.body.password, user.password, (err, isSame) => {
                     if (isSame) {
                         user.password = undefined;
                         let token = jwt.sign({email: user.email, id: user._id}, config.secret);
-                        callback({userId: user._id, token: token});
+                        done(null, {userId: user._id, accessToken: token});
                     } else {
                         res.status(401);
-                        callback({error: 401, message: 'Not authorized'});
+                        done({error: 'Not authorized'}, null);
                     }
                 });
             } else {
                 res.status(401);
-                callback({error: 401, message: 'Not authorized'});
+                done({error: 'User not found'}, null);
             }
         }, (err) => {
-            logger.error(err) && callback(defaultErrorMessage);
+            logger.error(err) && done(defaultErrorMessage, null);
         });
     }
 };
