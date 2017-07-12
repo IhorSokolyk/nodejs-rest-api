@@ -13,8 +13,11 @@ app.set('superSecret', config.secret);
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+
 // use morgan to log requests to the console
-app.use(morgan('dev'));
+if (process.env.NODE_ENV !== 'test') {
+    app.use(morgan('dev'));
+}
 
 app.use('/user', userRouter);
 
@@ -23,4 +26,4 @@ app.listen(8080);
 mongoose.Promise = global.Promise;
 mongoose.connect(config.database, {useMongoClient: true});
 
-
+module.exports = app;

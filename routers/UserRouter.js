@@ -43,6 +43,15 @@ router.get('/get/:id', (req, res) => {
         }
     });
 });
+router.put('/update', (req, res) => {
+    UserService.update(req, res, (err, user) => {
+        if (err) {
+            res.json({error: err});
+        } else {
+            res.json(user);
+        }
+    });
+});
 
 router.post('/logout', (req, res) => {
     TokenService.delete(req, (err, success) => {
@@ -61,8 +70,8 @@ function validateToken(req, res, next) {
         TokenService.get(token, (err, foundToken) => {
             if (foundToken) {
                 jwt.verify(token, config.secret, function (err, decoded) {
-                    console.log(decoded);
                     if (decoded && (decoded.id === foundToken.userId)) {
+                        req.body.userId = decoded.id;
                         next();
                     } else {
                         return res.status(401).send(authFailed);

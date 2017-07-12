@@ -38,6 +38,19 @@ module.exports = {
             }
         });
     },
+    update(req, res, done) {
+        User.findById(req.body.userId).then((user) => {
+            req.body.updatedAt = Date.now();
+            Object.assign(user, req.body).save().then((updatedUser) => {
+                res.status(200);
+                done(null, updatedUser);
+            }, (err) => {
+                logger.error(err) && done(defaultErrorMessage, null);
+            })
+        }, (err)=> {
+            logger.error(err) && done(defaultErrorMessage, null);
+        })
+    },
     getByEmail(req, done) {
         User.findOne({'email': req.body.email}, '-password -__v').then((user) => {
             if (user) {
