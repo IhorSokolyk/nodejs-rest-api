@@ -6,7 +6,7 @@ const express = require('express'),
     logger = require('./utils/logger'),
     morgan = require('morgan'),
     userRouter = require('./routers/UserRouter'),
-    config = require('./config');
+    config = require('./config')[process.env.NODE_ENV  || 'dev'];
 let User = require('./models/User');
 
 app.set('superSecret', config.secret);

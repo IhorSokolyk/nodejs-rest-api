@@ -25,6 +25,11 @@ describe('UserService', () => {
             done();
         });
     });
+    after((done) => {
+        User.remove({}, (err) => {
+            done();
+        });
+    });
 
     describe('/POST User', () => {
         it('it should create new user', (done) => {

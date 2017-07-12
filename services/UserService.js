@@ -2,7 +2,7 @@ const User = require('../models/User'),
     logger = require('../utils/logger'),
     bcrypt = require('bcryptjs'),
     jwt = require('jsonwebtoken'),
-    config = require('../config');
+    config = require('../config')[process.env.NODE_ENV || 'dev'];
 
 let defaultErrorMessage = {error: 'Something went wrong. Try again later.'};
 module.exports = {

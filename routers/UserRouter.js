@@ -3,7 +3,7 @@ const express = require('express'),
     jwt = require('jsonwebtoken'),
     UserService = require('../services/UserService'),
     TokenService = require('../services/TokenService'),
-    config = require('../config');
+    config = require('../config')[process.env.NODE_ENV || 'dev'];
 
 router.post('/save', (req, res) => {
     UserService.save(req, res, (err, user) => {
