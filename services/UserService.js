@@ -5,6 +5,7 @@ const User = require('../models/User'),
     config = require('../config')[process.env.NODE_ENV || 'dev'];
 
 let defaultErrorMessage = {error: 'Something went wrong. Try again later.'};
+
 module.exports = {
     get(req, res, done){
         User.findById(req.params.id, '-password -__v').then((user) => {
@@ -15,6 +16,7 @@ module.exports = {
                 done({error: 'User not found'}, null);
             }
         }, (err) => {
+            res.status(500);
             logger.error(err) && done(defaultErrorMessage, null);
         });
     },
@@ -33,6 +35,7 @@ module.exports = {
                     savedUser.password = undefined;
                     done(null, savedUser);
                 }, (err) => {
+                    res.status(500);
                     logger.error(err) && done(defaultErrorMessage, null);
                 });
             }
@@ -40,14 +43,21 @@ module.exports = {
     },
     update(req, res, done) {
         User.findById(req.body.userId).then((user) => {
-            req.body.updatedAt = Date.now();
-            Object.assign(user, req.body).save().then((updatedUser) => {
-                res.status(200);
-                done(null, updatedUser);
-            }, (err) => {
-                logger.error(err) && done(defaultErrorMessage, null);
-            })
+            if (user) {
+                req.body.updatedAt = Date.now();
+                Object.assign(user, req.body).save().then((updatedUser) => {
+                    res.status(200);
+                    done(null, updatedUser);
+                }, (err) => {
+                    res.status(500);
+                    logger.error(err) && done(defaultErrorMessage, null);
+                });
+            } else {
+                res.status(404);
+                done({error: 'User not found'}, null);
+            }
         }, (err)=> {
+            res.status(500);
             logger.error(err) && done(defaultErrorMessage, null);
         })
     },
@@ -80,6 +90,7 @@ module.exports = {
                 done({error: 'User not found'}, null);
             }
         }, (err) => {
+            res.status(500);
             logger.error(err) && done(defaultErrorMessage, null);
         });
     }
