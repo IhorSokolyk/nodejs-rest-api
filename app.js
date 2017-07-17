@@ -7,9 +7,7 @@ const express = require('express'),
     morgan = require('morgan'),
     userRouter = require('./routers/UserRouter'),
     config = require('./config')[process.env.NODE_ENV  || 'dev'];
-let User = require('./models/User');
 
-app.set('superSecret', config.secret);
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());

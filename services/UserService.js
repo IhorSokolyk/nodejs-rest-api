@@ -2,23 +2,31 @@ const User = require('../models/User'),
     logger = require('../utils/logger'),
     bcrypt = require('bcryptjs'),
     jwt = require('jsonwebtoken'),
+    mongoose = require('mongoose'),
     config = require('../config')[process.env.NODE_ENV || 'dev'];
 
-let defaultErrorMessage = {error: 'Something went wrong. Try again later.'};
+let serverError = {error: 'Internal server error.'};
 
 module.exports = {
     get(req, res, done){
-        User.findById(req.params.id, '-password -__v').then((user) => {
-            if (user) {
-                done(null, user);
-            } else {
-                res.status(404);
-                done({error: 'User not found'}, null);
-            }
-        }, (err) => {
-            res.status(500);
-            logger.error(err) && done(defaultErrorMessage, null);
-        });
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+            User.findById(req.params.id, '-password -__v').then((user) => {
+                if (user) {
+                    done(null, user);
+                } else {
+                    res.status(404);
+                    done({error: 'User not found'}, null);
+                }
+            }, (err) => {
+                res.status(500);
+                logger.error(err) && done(serverError, null);
+            });
+        } else {
+            res.status(400);
+            logger.error('Invalid ObjectId');
+            done({error: 'Invalid user ID in URL'}, null);
+        }
+
     },
     save(req, res, done) {
         this.getByEmail(req, (err, dbUser) => {
@@ -36,7 +44,7 @@ module.exports = {
                     done(null, savedUser);
                 }, (err) => {
                     res.status(500);
-                    logger.error(err) && done(defaultErrorMessage, null);
+                    logger.error(err) && done(serverError, null);
                 });
             }
         });
@@ -50,7 +58,7 @@ module.exports = {
                     done(null, updatedUser);
                 }, (err) => {
                     res.status(500);
-                    logger.error(err) && done(defaultErrorMessage, null);
+                    logger.error(err) && done(serverError, null);
                 });
             } else {
                 res.status(404);
@@ -58,7 +66,7 @@ module.exports = {
             }
         }, (err)=> {
             res.status(500);
-            logger.error(err) && done(defaultErrorMessage, null);
+            logger.error(err) && done(serverError, null);
         })
     },
     getByEmail(req, done) {
@@ -69,7 +77,7 @@ module.exports = {
                 done({error: 'User not found'}, null);
             }
         }, (err) => {
-            logger.error(err) && done(defaultErrorMessage, null);
+            logger.error(err) && done(serverError, null);
         });
     },
     login(req, res, done) {
@@ -91,7 +99,7 @@ module.exports = {
             }
         }, (err) => {
             res.status(500);
-            logger.error(err) && done(defaultErrorMessage, null);
+            logger.error(err) && done(serverError, null);
         });
     }
 };
