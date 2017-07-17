@@ -3,7 +3,18 @@ const express = require('express'),
     jwt = require('jsonwebtoken'),
     UserService = require('../services/UserService'),
     TokenService = require('../services/TokenService'),
-    config = require('../config')[process.env.NODE_ENV || 'dev'];
+    config = require('../config')[process.env.NODE_ENV || 'dev'],
+    multer = require('multer');
+
+var storage = multer.diskStorage({
+    destination(req, file, callback) {
+        callback(null, 'uploads/');
+    },
+    filename(req, file, callback) {
+        callback(null, file.originalname + '-' + Date.now() + '.jpg');
+    }
+});
+var upload = multer({storage: storage}).single('profileImage');
 
 router.post('/save', (req, res) => {
     UserService.save(req, res, (err, user) => {
@@ -51,6 +62,15 @@ router.put('/update', (req, res) => {
             res.json(user);
         }
     });
+});
+router.post('/upload', (req, res) => {
+    upload(req, res, (err) => {
+        if (err) {
+            res.json({error: 'Error uploading file'});
+        } else {
+            res.json({message: 'File is uploaded'});
+        }
+    })
 });
 
 router.post('/logout', (req, res) => {
