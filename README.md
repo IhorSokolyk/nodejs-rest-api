@@ -1,17 +1,17 @@
-#NodeJS API Project
+# NodeJS API Project
 This project is a simple REST API written in NodeJS + Express + MongoDB for user's CRUD operation.
 Also there is login/logout functionality using web tokens provided.
 
-##Pre Requirements
+## Pre Requirements
 Before running this project several components should be installed:
 
 * NodeJS
 * MongoDB
 
-##Running the project
+## Running the project
 Clone this project to your PC using next command
 
-`git clone https://ihor_sokolyk@bitbucket.org/Oril-Inc/portfolio-nodejs.git`
+`git clone https://github.com/IhorSokolyk/nodejs-rest-api.git`
 
 Go to project root folder and in the command line execute the following commands:
 
@@ -31,7 +31,7 @@ Now the project is ready to run with command
 
 If  everything is okay, the server will be running on port 8080
 
-##Running tests
+## Running tests
 This project uses the next modules for testing Express application:
 
 * mocha
